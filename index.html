@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huddle Moderator Tool</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        input, button, textarea {
+            margin: 10px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        .highlight {
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Huddle Moderator Tool</h1>
+        <br>
+        <textarea id="inputStrings" placeholder="Enter multiple names, one per line" rows="5" cols="30"></textarea>
+        <br>
+        <button onclick="addMultipleToQueue()">Add Multiple to Order</button>
+        <button onclick="shuffleQueue()">Shuffle Order</button>
+        <button onclick="highlightNext()">Highlight Next</button>
+        <button onclick="toggleTimer()">Play/Pause Timer</button>
+        <button onclick="resetTimer()">Reset Timer</button>
+        <h2>Order:</h2>
+        <ol id="queueList"></ol>
+        <h2>Timer: <span id="timer">02:00</span></h2>
+	<h4>v1.0.0</h4>
+    </div>
+
+    <script>
+        let queue = [];
+        let currentIndex = 0;
+        let timer;
+        let timeLeft = 120;
+        let isTimerRunning = false;
+
+        function addMultipleToQueue() {
+            const input = document.getElementById('inputStrings').value;
+            if (input) {
+                const strings = input.split('\n').map(str => str.trim()).filter(str => str);
+                queue.push(...strings);
+                document.getElementById('inputStrings').value = '';
+                displayQueue();
+            }
+        }
+
+        function shuffleQueue() {
+            queue = queue.sort(() => 0.5 - Math.random());
+            displayQueue();
+        }
+
+        function displayQueue() {
+            const queueList = document.getElementById('queueList');
+            queueList.innerHTML = '';
+            queue.forEach((item, index) => {
+                const li = document.createElement('li');
+                li.textContent = item;
+                li.id = `item-${index}`;
+                queueList.appendChild(li);
+            });
+        }
+
+        function highlightNext() {
+            if (queue.length === 0) return;
+
+            // Remove highlight from previous item
+            if (currentIndex > 0) {
+                document.getElementById(`item-${currentIndex - 1}`).classList.remove('highlight');
+            } else if (currentIndex === 0 && queue.length > 1) {
+                document.getElementById(`item-${queue.length - 1}`).classList.remove('highlight');
+            }
+
+            // Highlight current item
+            document.getElementById(`item-${currentIndex}`).classList.add('highlight');
+
+            // Reset timer
+            resetTimer();
+
+            // Move to next item
+            currentIndex = (currentIndex + 1) % queue.length;
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            timeLeft = 120;
+            document.getElementById('timer').textContent = formatTime(timeLeft);
+            isTimerRunning = false;
+        }
+
+        function toggleTimer() {
+            if (isTimerRunning) {
+                clearInterval(timer);
+            } else {
+                timer = setInterval(() => {
+                    timeLeft--;
+                    document.getElementById('timer').textContent = formatTime(timeLeft);
+                }, 1000);
+            }
+            isTimerRunning = !isTimerRunning;
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(Math.abs(seconds) / 60);
+            const secs = Math.abs(seconds) % 60;
+            const sign = seconds < 0 ? '-' : '';
+            return `${sign}${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+    </script>
+</body>
+</html>
