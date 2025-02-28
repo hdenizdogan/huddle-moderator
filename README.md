@@ -1,4 +1,4 @@
-# Queue Shuffler
+# Huddle Moderation Tool
 
 This is a simple web application that allows users to input strings, add them to a queue, shuffle the queue, and highlight each string with a timer. The timer includes play, pause, and reset functionalities.
 
