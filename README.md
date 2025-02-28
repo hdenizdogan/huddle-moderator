@@ -12,12 +12,12 @@ This is a simple web application that allows users to input strings, add them to
 
 ## Usage
 
-1. **Add Single String**: Enter a single string in the input field and click the "Add Single to Queue" button.
-2. **Add Multiple Strings**: Enter multiple strings (one per line) in the textarea and click the "Add Multiple to Queue" button.
-3. **Shuffle Queue**: Click the "Shuffle Queue" button to shuffle the order of strings in the queue.
-4. **Highlight Next**: Click the "Highlight Next" button to highlight the next string in the queue.
-5. **Play/Pause Timer**: Click the "Play/Pause Timer" button to start or pause the 2-minute timer for the highlighted string.
-6. **Reset Timer**: Click the "Reset Timer" button to reset the timer to 2 minutes.
+1. **Add Multiple Strings**: Enter multiple strings (one per line) in the textarea and click the "Add Multiple to Queue" button.
+2. **Shuffle Queue**: Click the "Shuffle Queue" button to shuffle the order of strings in the queue.
+3. **Highlight Next**: Click the "Highlight Next" button to highlight the next string in the queue.
+4. **Play/Pause Timer**: Click the "Play/Pause Timer" button to start or pause the 2-minute timer for the highlighted string.
+5. **Reset Timer**: Click the "Reset Timer" button to reset the timer to 2 minutes.
+ 
 
 ## Installation
 
