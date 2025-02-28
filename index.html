@@ -34,17 +34,25 @@
     <div class="container">
         <h1>Huddle Moderator Tool</h1>
         <br>
-        <textarea id="inputStrings" placeholder="Enter multiple names, one per line" rows="5" cols="30"></textarea>
+        <textarea id="inputStrings" placeholder="Enter multiple member names EXAMPLE:
+        Member1
+        Member2
+        Member3
+        " rows="10" cols="30"></textarea>
         <br>
-        <button onclick="addMultipleToQueue()">Add Multiple to Order</button>
-        <button onclick="shuffleQueue()">Shuffle Order</button>
-        <button onclick="highlightNext()">Highlight Next</button>
-        <button onclick="toggleTimer()">Play/Pause Timer</button>
-        <button onclick="resetTimer()">Reset Timer</button>
-        <h2>Order:</h2>
+        <fieldset>
+            <button onclick="addMultipleToQueue()">Add Multiple Members to Order</button>
+            <button onclick="shuffleQueue()">Shuffle Member Order</button>
+            <button onclick="highlightNext()">Highlight Next Member</button>
+        </fieldset>
+        <fieldset>
+            <button onclick="toggleTimer()">Play/Pause Timer</button>
+            <button onclick="resetTimer()">Reset Timer</button>
+        </fieldset>
+        <h2>Huddle Speaking Order:</h2>
         <ol id="queueList"></ol>
         <h2>Timer: <span id="timer">02:00</span></h2>
-	<h4>v1.0.0</h4>
+	<h4>v1.0.1</h4>
     </div>
 
     <script>
