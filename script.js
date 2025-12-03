@@ -277,7 +277,8 @@ const Events = (() => {
       return;
     }
     
-    const shuffleCount = window.diceValue || 1;
+    // Use dice value if available, otherwise default to 1
+    const shuffleCount = parseInt(window.diceValue) || 1;
     for (let i = 0; i < shuffleCount; i++) {
       AppState.shuffleSpeakers();
     }
@@ -464,6 +465,9 @@ const Utils = (() => {
 document.addEventListener('DOMContentLoaded', () => {
   // Load state
   AppState.loadState();
+
+  // Initialize dice value
+  window.diceValue = 1;
 
   // Set initial theme
   const theme = AppState.loadTheme();
