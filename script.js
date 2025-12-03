@@ -240,18 +240,32 @@ const Events = (() => {
   // Add speaker form submit
   const handleAddSpeaker = (e) => {
     e.preventDefault();
-    const input = document.getElementById('speakerInput');
-    const name = input.value.trim();
+    const textarea = document.getElementById('speakerInput');
+    const text = textarea.value.trim();
 
-    if (!name) {
-      alert('Please enter a speaker name');
-      input.focus();
+    if (!text) {
+      alert('Please enter at least one speaker name');
+      textarea.focus();
       return;
     }
 
-    AppState.addSpeaker(name);
-    input.value = '';
-    input.focus();
+    // Split by lines and add each non-empty speaker
+    const names = text.split('\n')
+      .map(name => name.trim())
+      .filter(name => name.length > 0);
+
+    if (names.length === 0) {
+      alert('Please enter at least one speaker name');
+      textarea.focus();
+      return;
+    }
+
+    names.forEach(name => {
+      AppState.addSpeaker(name);
+    });
+
+    textarea.value = '';
+    textarea.focus();
     UI.renderSpeakers();
   };
 
@@ -420,6 +434,30 @@ const Events = (() => {
 })();
 
 // ===================================
+// UTILITIES
+// ===================================
+
+const Utils = (() => {
+  const getDayOfWeek = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    // Convert Sunday (0) to Monday (1) format
+    const dayNumber = dayOfWeek === 0 ? 7 : dayOfWeek;
+    return dayNumber;
+  };
+
+  const updateDayWidget = () => {
+    const dayValue = document.getElementById('dayValue');
+    const dayNumber = getDayOfWeek();
+    const dayNames = ['', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'];
+    const dayName = dayNames[dayNumber];
+    dayValue.textContent = `${dayName} - Haftanın ${dayNumber}.günü`;
+  };
+
+  return { getDayOfWeek, updateDayWidget };
+})();
+
+// ===================================
 // INITIALIZATION
 // ===================================
 
@@ -432,6 +470,9 @@ document.addEventListener('DOMContentLoaded', () => {
   document.documentElement.setAttribute('data-theme', theme);
   const icon = document.querySelector('.theme-toggle__icon');
   icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+
+  // Update day of week widget
+  Utils.updateDayWidget();
 
   // Initial render
   UI.renderSpeakers();

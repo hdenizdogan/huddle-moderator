@@ -26,30 +26,36 @@
                 <!-- Add Speaker Form -->
                 <div class="control-group control-group--add-speaker">
                     <h2 class="control-group__title">Add Speaker</h2>
-                    <form class="form" id="addSpeakerForm">
-                        <input
-                            type="text"
+                    <form class="form form--column" id="addSpeakerForm">
+                        <textarea
                             id="speakerInput"
-                            class="form__input"
-                            placeholder="Enter speaker name"
-                            aria-label="Speaker name input"
-                            maxlength="50"
-                        />
+                            class="form__textarea"
+                            placeholder="Enter speaker names (one per line)"
+                            aria-label="Speaker names input"
+                            rows="6"
+                        ></textarea>
                         <button type="submit" class="btn btn--primary">
-                            <span class="btn__text">Add Speaker</span>
+                            <span class="btn__text">Add Speakers</span>
                         </button>
                     </form>
 
                     <!-- Dice Roller -->
                     <div class="dice-section">
-                        <button class="btn btn--secondary" id="diceBtn" aria-label="Roll the dice">
-                            <span class="btn__text">Roll Dice</span>
-                        </button>
-                        <div class="dice-display" id="diceDisplay">
-                            <div class="dice" id="dice">🎲</div>
-                            <div class="dice-result" id="diceResult" style="display:none;">
-                                <span id="diceValue">0</span>
+                        <div class="dice-container">
+                            <button class="btn btn--secondary btn--small" id="diceBtn" aria-label="Roll the dice">
+                                <span class="btn__text">🎲 Roll</span>
+                            </button>
+                            <div class="dice-display" id="diceDisplay">
+                                <div class="dice" id="dice">🎲</div>
+                                <div class="dice-result" id="diceResult" style="display:none;">
+                                    <span id="diceValue">0</span>
+                                </div>
                             </div>
+                        </div>
+
+                        <!-- Day of Week Widget -->
+                        <div class="day-widget" id="dayWidget">
+                            <span class="day-widget__value" id="dayValue">Çarşamba - Haftanın 3.günü</span>
                         </div>
                     </div>
                 </div>
