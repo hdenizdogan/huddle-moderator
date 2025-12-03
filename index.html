@@ -4,135 +4,125 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Huddle Moderator Tool</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-        }
-        .container {
-            text-align: center;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        input, button, textarea {
-            margin: 10px;
-            padding: 10px;
-            font-size: 16px;
-        }
-        .highlight {
-            background-color: yellow;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="container">
-        <h1>Huddle Moderator Tool</h1>
-        <br>
-        <textarea id="inputStrings" placeholder="Enter multiple member names EXAMPLE:
-        Member1
-        Member2
-        Member3
-        " rows="10" cols="30"></textarea>
-        <br>
-        <fieldset>
-            <button onclick="addMultipleToQueue()">Add Multiple Members to Order</button>
-            <button onclick="shuffleQueue()">Shuffle Member Order</button>
-            <button onclick="highlightNext()">Highlight Next Member</button>
-        </fieldset>
-        <fieldset>
-            <button onclick="toggleTimer()">Play/Pause Timer</button>
-            <button onclick="resetTimer()">Reset Timer</button>
-        </fieldset>
-        <h2>Huddle Speaking Order:</h2>
-        <ol id="queueList"></ol>
-        <h2>Timer: <span id="timer">02:00</span></h2>
-	<h4>v1.0.1</h4>
+    <div class="app">
+        <!-- Header Section -->
+        <header class="header">
+            <div class="header__container">
+                <div class="header__content">
+                    <h1 class="header__title">Huddle Moderator</h1> 
+                </div>
+                <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <span class="theme-toggle__icon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="main">
+            <!-- Controls Section -->
+            <section class="controls" aria-label="Speaker management controls">
+                <!-- Add Speaker Form -->
+                <div class="control-group control-group--add-speaker">
+                    <h2 class="control-group__title">Add Speaker</h2>
+                    <form class="form form--column" id="addSpeakerForm">
+                        <textarea
+                            id="speakerInput"
+                            class="form__textarea"
+                            placeholder="Enter speaker names (one per line)"
+                            aria-label="Speaker names input"
+                            rows="6"
+                        ></textarea>
+                        <button type="submit" class="btn btn--primary">
+                            <span class="btn__text">Add Speakers</span>
+                        </button>
+                    </form>
+
+                    <!-- Dice Roller -->
+                    <div class="dice-section">
+                        <div class="dice-container">
+                            <button class="btn btn--secondary btn--small" id="diceBtn" aria-label="Roll the dice">
+                                <span class="btn__text">🎲 Roll</span>
+                            </button>
+                            <div class="dice-display" id="diceDisplay">
+                                <div class="dice" id="dice">🎲</div>
+                                <div class="dice-result" id="diceResult" style="display:none;">
+                                    <span id="diceValue">0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Day of Week Widget -->
+                        <div class="day-widget" id="dayWidget">
+                            <span class="day-widget__value" id="dayValue">Çarşamba - Haftanın 3.günü</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="control-group control-group--actions">
+                    <h2 class="control-group__title">Actions</h2>
+                    <div class="button-group">
+                        <button class="btn btn--secondary" id="shuffleBtn" aria-label="Shuffle speaker order">
+                            <span class="btn__text">Shuffle</span>
+                        </button>
+                        <button class="btn btn--accent" id="nextBtn" aria-label="Move to next speaker">
+                            <span class="btn__text">Next Speaker</span>
+                        </button>
+                        <button class="btn btn--secondary" id="clearBtn" aria-label="Clear all speakers">
+                            <span class="btn__text">Clear All</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Speaker List and Timer Layout -->
+            <div class="content-grid">
+                <!-- Speaker List Section -->
+                <section class="speakers-section">
+                    <h2 class="section-title">Speaker Queue</h2>
+                    <div class="speakers-container">
+                        <ul class="speakers-list" id="speakersList" role="list">
+                            <!-- Dynamically populated -->
+                        </ul>
+                        <div class="speakers-empty" id="speakersEmpty">
+                            <p class="speakers-empty__text">No speakers added yet. Start by adding a speaker above!</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Timer Section -->
+                <section class="timer-section">
+                    <h2 class="section-title">Timer</h2>
+                    <div class="timer-display">
+                        <div class="timer__digits" id="timerDisplay" role="status" aria-live="polite">
+                            02:00
+                        </div>
+                    </div>
+                    <div class="timer-controls">
+                        <button class="btn btn--secondary" id="startPauseBtn" aria-label="Start or pause the timer">
+                            <span class="btn__text" id="startPauseText">Start</span>
+                        </button>
+                        <button class="btn btn--secondary" id="resetTimerBtn" aria-label="Reset the timer">
+                            <span class="btn__text">Reset</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Active Speaker Announcement (Screen reader only) -->
+            <div class="sr-only" id="activeSpeakerAnnouncement" role="status" aria-live="polite" aria-atomic="true">
+                <!-- Announcements for screen readers -->
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p class="footer__text">Huddle Moderator v2.0 • Bowties Design Presents</p>
+        </footer>
     </div>
 
-    <script>
-        let queue = [];
-        let currentIndex = 0;
-        let timer;
-        let timeLeft = 120;
-        let isTimerRunning = false;
-
-        function addMultipleToQueue() {
-            const input = document.getElementById('inputStrings').value;
-            if (input) {
-                const strings = input.split('\n').map(str => str.trim()).filter(str => str);
-                queue.push(...strings);
-                document.getElementById('inputStrings').value = '';
-                displayQueue();
-            }
-        }
-
-        function shuffleQueue() {
-            queue = queue.sort(() => 0.5 - Math.random());
-            displayQueue();
-        }
-
-        function displayQueue() {
-            const queueList = document.getElementById('queueList');
-            queueList.innerHTML = '';
-            queue.forEach((item, index) => {
-                const li = document.createElement('li');
-                li.textContent = item;
-                li.id = `item-${index}`;
-                queueList.appendChild(li);
-            });
-        }
-
-        function highlightNext() {
-            if (queue.length === 0) return;
-
-            // Remove highlight from previous item
-            if (currentIndex > 0) {
-                document.getElementById(`item-${currentIndex - 1}`).classList.remove('highlight');
-            } else if (currentIndex === 0 && queue.length > 1) {
-                document.getElementById(`item-${queue.length - 1}`).classList.remove('highlight');
-            }
-
-            // Highlight current item
-            document.getElementById(`item-${currentIndex}`).classList.add('highlight');
-
-            // Reset timer
-            resetTimer();
-
-            // Move to next item
-            currentIndex = (currentIndex + 1) % queue.length;
-        }
-
-        function resetTimer() {
-            clearInterval(timer);
-            timeLeft = 120;
-            document.getElementById('timer').textContent = formatTime(timeLeft);
-            isTimerRunning = false;
-        }
-
-        function toggleTimer() {
-            if (isTimerRunning) {
-                clearInterval(timer);
-            } else {
-                timer = setInterval(() => {
-                    timeLeft--;
-                    document.getElementById('timer').textContent = formatTime(timeLeft);
-                }, 1000);
-            }
-            isTimerRunning = !isTimerRunning;
-        }
-
-        function formatTime(seconds) {
-            const minutes = Math.floor(Math.abs(seconds) / 60);
-            const secs = Math.abs(seconds) % 60;
-            const sign = seconds < 0 ? '-' : '';
-            return `${sign}${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
