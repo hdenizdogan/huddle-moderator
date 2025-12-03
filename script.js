@@ -81,7 +81,7 @@ const AppState = (() => {
     setSpeakers: (newSpeakers) => { speakers = newSpeakers; saveState(); },
     addSpeaker: (name) => {
       const speaker = {
-        id: Date.now(),
+        id: Date.now() + Math.random(),
         name: name.trim()
       };
       speakers.push(speaker);
@@ -165,13 +165,6 @@ const UI = (() => {
           ✕
         </button>
       `;
-
-      // Remove button handler
-      li.querySelector('.speaker-item__remove').addEventListener('click', (e) => {
-        e.stopPropagation();
-        AppState.removeSpeaker(speaker.id);
-        renderSpeakers();
-      });
 
       listEl.appendChild(li);
 
@@ -420,6 +413,18 @@ const Events = (() => {
     document.getElementById('startPauseBtn').addEventListener('click', handleToggleTimer);
     document.getElementById('resetTimerBtn').addEventListener('click', handleResetTimer);
     document.getElementById('themeToggle').addEventListener('click', handleThemeToggle);
+
+    // Event delegation for speaker removal
+    document.getElementById('speakersList').addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('.speaker-item__remove');
+      if (removeBtn) {
+        e.stopPropagation();
+        const speakerItem = removeBtn.closest('.speaker-item');
+        const speakerId = parseFloat(speakerItem.getAttribute('data-speaker-id'));
+        AppState.removeSpeaker(speakerId);
+        UI.renderSpeakers();
+      }
+    });
 
     // Keyboard shortcut: Enter to add speaker (handled by form submit)
     // Keyboard shortcut: Space to toggle timer
