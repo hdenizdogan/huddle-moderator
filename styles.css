@@ -289,19 +289,20 @@ body {
 
 /* Primary Button */
 .btn--primary {
-  background-color: var(--color-accent);
-  color: white;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
 }
 
 .btn--primary:hover {
-  background-color: var(--color-accent-hover);
+  background-color: var(--color-surface);
+  border-color: var(--color-accent);
   box-shadow: var(--shadow-md);
   transform: translateY(-1px);
 }
 
 .btn--primary:active {
-  background-color: var(--color-accent-active);
   transform: translateY(0);
 }
 
