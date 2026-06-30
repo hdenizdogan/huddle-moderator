@@ -95,6 +95,19 @@ const AppState = (() => {
       }
       saveState();
     },
+    reorderSpeakers: (fromIndex, toIndex) => {
+      if (speakers.length < 2 || fromIndex === toIndex) return false;
+      if (fromIndex < 0 || toIndex < 0 || fromIndex >= speakers.length || toIndex >= speakers.length) return false;
+
+      const activeSpeakerId = speakers[activeIndex]?.id;
+      const [movedSpeaker] = speakers.splice(fromIndex, 1);
+      speakers.splice(toIndex, 0, movedSpeaker);
+
+      const newActiveIndex = speakers.findIndex(speaker => speaker.id === activeSpeakerId);
+      activeIndex = newActiveIndex >= 0 ? newActiveIndex : Math.min(activeIndex, speakers.length - 1);
+      saveState();
+      return true;
+    },
     shuffleSpeakers: () => {
       for (let i = speakers.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -108,6 +121,12 @@ const AppState = (() => {
     nextSpeaker: () => {
       if (speakers.length === 0) return null;
       activeIndex = (activeIndex + 1) % speakers.length;
+      saveState();
+      return speakers[activeIndex];
+    },
+    previousSpeaker: () => {
+      if (speakers.length === 0) return null;
+      activeIndex = (activeIndex - 1 + speakers.length) % speakers.length;
       saveState();
       return speakers[activeIndex];
     },
@@ -138,11 +157,11 @@ const UI = (() => {
   };
 
   // Render speaker list
-  const renderSpeakers = () => {
+  const renderSpeakers = (speakerList = AppState.getSpeakers(), activeIndexOverride = AppState.getActiveIndex(), isShuffling = false) => {
     const listEl = document.getElementById('speakersList');
     const emptyEl = document.getElementById('speakersEmpty');
-    const speakers = AppState.getSpeakers();
-    const activeIndex = AppState.getActiveIndex();
+    const speakers = speakerList;
+    const activeIndex = activeIndexOverride;
 
     listEl.innerHTML = '';
 
@@ -155,10 +174,12 @@ const UI = (() => {
 
     speakers.forEach((speaker, index) => {
       const li = document.createElement('li');
-      li.className = `speaker-item ${index === activeIndex ? 'active' : ''}`;
+      li.className = `speaker-item ${index === activeIndex ? 'active' : ''} ${isShuffling ? 'speaker-item--shuffling' : ''}`;
       li.setAttribute('data-speaker-id', speaker.id);
+      li.setAttribute('draggable', 'true');
 
       li.innerHTML = `
+        <span class="speaker-item__drag-handle" aria-hidden="true">⋮⋮</span>
         <span class="speaker-item__index">${index + 1}</span>
         <span class="speaker-item__name">${escapeHtml(speaker.name)}</span>
         <button class="speaker-item__remove" title="Remove speaker" aria-label="Remove ${escapeHtml(speaker.name)}">
@@ -269,13 +290,34 @@ const Events = (() => {
       alert('Add at least 2 speakers to shuffle');
       return;
     }
-    
-    // Use dice value if available, otherwise default to 1
+
     const shuffleCount = parseInt(window.diceValue) || 1;
-    for (let i = 0; i < shuffleCount; i++) {
-      AppState.shuffleSpeakers();
-    }
-    UI.renderSpeakers();
+    const shuffledPreview = [...speakers];
+    const steps = 18;
+    const intervalMs = 55;
+    let step = 0;
+
+    const intervalId = setInterval(() => {
+      const tempOrder = [...shuffledPreview];
+      const firstIndex = Math.floor(Math.random() * tempOrder.length);
+      const secondIndex = Math.floor(Math.random() * tempOrder.length);
+
+      if (firstIndex !== secondIndex) {
+        [tempOrder[firstIndex], tempOrder[secondIndex]] = [tempOrder[secondIndex], tempOrder[firstIndex]];
+      }
+
+      shuffledPreview.splice(0, shuffledPreview.length, ...tempOrder);
+      UI.renderSpeakers(shuffledPreview, 0, true);
+
+      step += 1;
+      if (step >= steps) {
+        clearInterval(intervalId);
+        for (let i = 0; i < shuffleCount; i++) {
+          AppState.shuffleSpeakers();
+        }
+        UI.renderSpeakers();
+      }
+    }, intervalMs);
   });
 
   // Next speaker
@@ -289,6 +331,29 @@ const Events = (() => {
     if (nextSpeaker) {
       UI.announceSpeaker(nextSpeaker.name);
       // Reset timer when moving to next speaker
+      const existingInterval = AppState.getTimerInterval();
+      if (existingInterval) {
+        clearInterval(existingInterval);
+      }
+      AppState.setTimerInterval(null);
+      AppState.resetTimer();
+      AppState.setRunning(false);
+      UI.updateTimerDisplay();
+      UI.updateStartPauseBtn();
+      UI.renderSpeakers();
+    }
+  });
+
+  // Previous speaker
+  const handlePrevious = debounce(() => {
+    const speakers = AppState.getSpeakers();
+    if (speakers.length === 0) {
+      alert('Add a speaker first');
+      return;
+    }
+    const previousSpeaker = AppState.previousSpeaker();
+    if (previousSpeaker) {
+      UI.announceSpeaker(previousSpeaker.name);
       const existingInterval = AppState.getTimerInterval();
       if (existingInterval) {
         clearInterval(existingInterval);
@@ -405,17 +470,80 @@ const Events = (() => {
 
   // Initialize event listeners
   const init = () => {
+    const speakersList = document.getElementById('speakersList');
+
     document.getElementById('addSpeakerForm').addEventListener('submit', handleAddSpeaker);
     document.getElementById('diceBtn').addEventListener('click', handleDiceRoll);
     document.getElementById('shuffleBtn').addEventListener('click', handleShuffle);
+    document.getElementById('prevBtn').addEventListener('click', handlePrevious);
     document.getElementById('nextBtn').addEventListener('click', handleNext);
     document.getElementById('clearBtn').addEventListener('click', handleClearAll);
     document.getElementById('startPauseBtn').addEventListener('click', handleToggleTimer);
     document.getElementById('resetTimerBtn').addEventListener('click', handleResetTimer);
     document.getElementById('themeToggle').addEventListener('click', handleThemeToggle);
 
+    let draggedSpeakerId = null;
+
+    speakersList.addEventListener('dragstart', (e) => {
+      const item = e.target.closest('.speaker-item');
+      if (!item) return;
+      draggedSpeakerId = item.getAttribute('data-speaker-id');
+      item.classList.add('speaker-item--dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', draggedSpeakerId);
+    });
+
+    speakersList.addEventListener('dragover', (e) => {
+      const item = e.target.closest('.speaker-item');
+      if (!item) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      document.querySelectorAll('.speaker-item').forEach(speakerItem => {
+        speakerItem.classList.remove('speaker-item--drop-target');
+      });
+      item.classList.add('speaker-item--drop-target');
+    });
+
+    speakersList.addEventListener('dragleave', (e) => {
+      const item = e.target.closest('.speaker-item');
+      if (!item) return;
+      item.classList.remove('speaker-item--drop-target');
+    });
+
+    speakersList.addEventListener('drop', (e) => {
+      const targetItem = e.target.closest('.speaker-item');
+      if (!targetItem || !draggedSpeakerId) return;
+      e.preventDefault();
+
+      const fromId = draggedSpeakerId;
+      const toId = targetItem.getAttribute('data-speaker-id');
+      if (fromId === toId) {
+        draggedSpeakerId = null;
+        document.querySelectorAll('.speaker-item').forEach(speakerItem => {
+          speakerItem.classList.remove('speaker-item--dragging');
+          speakerItem.classList.remove('speaker-item--drop-target');
+        });
+        return;
+      }
+
+      const speakers = AppState.getSpeakers();
+      const fromIndex = speakers.findIndex(speaker => speaker.id.toString() === fromId);
+      const toIndex = speakers.findIndex(speaker => speaker.id.toString() === toId);
+      AppState.reorderSpeakers(fromIndex, toIndex);
+      UI.renderSpeakers();
+      draggedSpeakerId = null;
+    });
+
+    speakersList.addEventListener('dragend', () => {
+      draggedSpeakerId = null;
+      document.querySelectorAll('.speaker-item').forEach(speakerItem => {
+        speakerItem.classList.remove('speaker-item--dragging');
+        speakerItem.classList.remove('speaker-item--drop-target');
+      });
+    });
+
     // Event delegation for speaker removal
-    document.getElementById('speakersList').addEventListener('click', (e) => {
+    speakersList.addEventListener('click', (e) => {
       const removeBtn = e.target.closest('.speaker-item__remove');
       if (removeBtn) {
         e.stopPropagation();
